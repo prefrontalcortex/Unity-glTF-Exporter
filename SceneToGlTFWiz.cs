@@ -866,11 +866,6 @@ public class SceneToGlTFWiz : MonoBehaviour
 		return GlTF_Writer.textureNames.IndexOf(texName);
 	}
 
-    public void TestUnityToPBRMaterial(Material mat, ref GlTF_Material material)
-    {
-        unityToPBRMaterial(mat, ref material);
-    }
-
 	// Convert material from Unity to glTF PBR
 	private void unityToPBRMaterial(Material mat, ref GlTF_Material material)
 	{
@@ -978,27 +973,15 @@ public class SceneToGlTFWiz : MonoBehaviour
 		if (mat.HasProperty("_BumpMap") && mat.GetTexture("_BumpMap") != null)
 		{
 			Texture2D bumpTexture = mat.GetTexture("_BumpMap") as Texture2D;
-			// Check if it's a normal or a bump map
-			TextureImporter im = AssetImporter.GetAtPath(AssetDatabase.GetAssetPath(bumpTexture)) as TextureImporter;
-			bool isBumpMap = im.convertToNormalmap;
+			
+            var textureValue = new GlTF_Material.DictValue();
+			textureValue.name = "normalTexture";
 
-			//if(isBumpMap)
-			//{
-                
-                
-			//	Debug.LogWarning("Unsupported texture " + bumpTexture + " (normal maps generated from grayscale are not supported)");
-			//}
-			//else
-			{
-				var textureValue = new GlTF_Material.DictValue();
-				textureValue.name = "normalTexture";
-
-				int bumpTextureIndex = processTexture(bumpTexture, IMAGETYPE.NORMAL_MAP);
-				textureValue.intValue.Add("index", bumpTextureIndex);
-				textureValue.intValue.Add("texCoord", 0);
-				textureValue.floatValue.Add("scale", mat.GetFloat("_BumpScale"));
-				material.values.Add(textureValue);
-			}
+			int bumpTextureIndex = processTexture(bumpTexture, IMAGETYPE.NORMAL_MAP);
+			textureValue.intValue.Add("index", bumpTextureIndex);
+			textureValue.intValue.Add("texCoord", 0);
+			textureValue.floatValue.Add("scale", mat.GetFloat("_BumpScale"));
+			material.values.Add(textureValue);
 		}
 
 		//Emissive
