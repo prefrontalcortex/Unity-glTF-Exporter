@@ -617,12 +617,12 @@ public class ExporterSKFB : EditorWindow {
             }
         }
 
-        selectedMat = (Material) EditorGUILayout.ObjectField(new GUIContent("Material"), selectedMat, typeof(Material), true);
-        if(GUILayout.Button("Test Mat Conversion") && selectedMat)
-        {
-            var m = new GlTF_Material();
-            exporter.TestUnityToPBRMaterial(selectedMat, ref m);
-        }
+        //selectedMat = (Material) EditorGUILayout.ObjectField(new GUIContent("Material"), selectedMat, typeof(Material), true);
+        //if(GUILayout.Button("Test Mat Conversion") && selectedMat)
+        //{
+        //    var m = new GlTF_Material();
+        //    exporter.TestUnityToPBRMaterial(selectedMat, ref m);
+        //}
     }
 
     public Material selectedMat;
