@@ -866,6 +866,11 @@ public class SceneToGlTFWiz : MonoBehaviour
 		return GlTF_Writer.textureNames.IndexOf(texName);
 	}
 
+    public void TestUnityToPBRMaterial(Material mat, ref GlTF_Material material)
+    {
+        unityToPBRMaterial(mat, ref material);
+    }
+
 	// Convert material from Unity to glTF PBR
 	private void unityToPBRMaterial(Material mat, ref GlTF_Material material)
 	{
@@ -896,12 +901,11 @@ public class SceneToGlTFWiz : MonoBehaviour
 		bool hasTransparency = handleTransparency(ref mat, ref material);
 
 		//Parse diffuse channel texture and color
-		if (mat.HasProperty("_MainTex") && mat.GetTexture("_MainTex") != null)
+		if (mat.HasProperty("_MainTex") && mat.GetTexture("_MainTex") != null && mat.GetTexture("_MainTex") is Texture2D)
 		{
 			var textureValue = new GlTF_Material.DictValue();
 			textureValue.name = isMetal ? "baseColorTexture" : "diffuseTexture";
-
-			int diffuseTextureIndex = processTexture((Texture2D)mat.GetTexture("_MainTex"), hasTransparency ? IMAGETYPE.RGBA : IMAGETYPE.RGBA_OPAQUE);
+            int diffuseTextureIndex = processTexture((Texture2D)mat.GetTexture("_MainTex"), hasTransparency ? IMAGETYPE.RGBA : IMAGETYPE.RGBA_OPAQUE);
 			textureValue.intValue.Add("index", diffuseTextureIndex);
 			textureValue.intValue.Add("texCoord", 0);
 			material.pbrValues.Add(textureValue);
@@ -978,11 +982,13 @@ public class SceneToGlTFWiz : MonoBehaviour
 			TextureImporter im = AssetImporter.GetAtPath(AssetDatabase.GetAssetPath(bumpTexture)) as TextureImporter;
 			bool isBumpMap = im.convertToNormalmap;
 
-			if(isBumpMap)
-			{
-				Debug.LogWarning("Unsupported texture " + bumpTexture + " (normal maps generated from grayscale are not supported)");
-			}
-			else
+			//if(isBumpMap)
+			//{
+                
+                
+			//	Debug.LogWarning("Unsupported texture " + bumpTexture + " (normal maps generated from grayscale are not supported)");
+			//}
+			//else
 			{
 				var textureValue = new GlTF_Material.DictValue();
 				textureValue.name = "normalTexture";
@@ -1034,6 +1040,9 @@ public class SceneToGlTFWiz : MonoBehaviour
 		doubleSided.value = false;
 		material.values.Add(doubleSided);
 	}
+
+    public Material unpackNormalMat;
+
 	private bool getPixelsFromTexture(ref Texture2D texture, out Color[] pixels)
 	{
 		//Make texture readable
@@ -1059,16 +1068,35 @@ public class SceneToGlTFWiz : MonoBehaviour
 			im.textureType = TextureImporterType.Image;
 		im.textureFormat = TextureImporterFormat.ARGB32;
 #else
-		if (type != TextureImporterType.Default)
+		if (type != TextureImporterType.Default && type != TextureImporterType.NormalMap)
 			im.textureType = TextureImporterType.Default;
 
 		im.textureCompression = TextureImporterCompression.Uncompressed;
 #endif
 		im.SaveAndReimport();
 
-		pixels = texture.GetPixels();
+        // if this is a bump texture from grayscale, we'll need another conversion step here to
+        // make sure we're using the normal map as it should look like.
 
-		if (!readable)
+        if (type == TextureImporterType.NormalMap)
+        {
+            if (unpackNormalMat == null || unpackNormalMat.shader.name != "Unlit/GetNormalMap")
+                unpackNormalMat = new Material(Shader.Find("Unlit/GetNormalMap"));
+
+            var dst = RenderTexture.GetTemporary(texture.width, texture.height, 24, RenderTextureFormat.ARGB32);
+            Graphics.Blit(texture, dst, unpackNormalMat);
+            RenderTexture.active = dst;
+            var normalTex = new Texture2D(texture.width, texture.height, TextureFormat.ARGB32, false, true);
+            normalTex.ReadPixels(new Rect(0, 0, texture.width, texture.height), 0, 0);
+            normalTex.Apply();
+
+            pixels = normalTex.GetPixels();
+        }
+        else { 
+		    pixels = texture.GetPixels();
+        }
+
+        if (!readable)
 			im.isReadable = false;
 #if UNITY_5_4
 		if (type != TextureImporterType.Image)

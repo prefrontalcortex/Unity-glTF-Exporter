@@ -588,7 +588,44 @@ public class ExporterSKFB : EditorWindow {
 				GUILayout.EndHorizontal();
 			}
 		}
-	}
+
+        // CUSTOM HACK FELIX
+        if (GUILayout.Button(status, GUILayout.Width(250), GUILayout.Height(40)))
+        {
+            bool enable = updateExporterStatus();
+            if (!enable)
+            {
+                EditorUtility.DisplayDialog("Error", status, "Ok");
+            }
+            else
+            {
+                if (System.IO.File.Exists(zipPath))
+                {
+                    System.IO.File.Delete(zipPath);
+                }
+
+                exporter.ExportCoroutine(exportPath, null, true, true, false, true);
+
+                if (File.Exists(zipPath))
+                {
+                    Debug.Log("Zip file at " + exportPath + " has been created");
+                }
+                else
+                {
+                    Debug.Log("Zip file has not been generated. Aborting publish.");
+                }
+            }
+        }
+
+        selectedMat = (Material) EditorGUILayout.ObjectField(new GUIContent("Material"), selectedMat, typeof(Material), true);
+        if(GUILayout.Button("Test Mat Conversion") && selectedMat)
+        {
+            var m = new GlTF_Material();
+            exporter.TestUnityToPBRMaterial(selectedMat, ref m);
+        }
+    }
+
+    public Material selectedMat;
 
 	private Dictionary<string, string> buildParameterDict()
 	{
