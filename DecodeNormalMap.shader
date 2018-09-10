@@ -1,4 +1,6 @@
-﻿Shader "Unlit/GetNormalMap"
+﻿// @author Felix Herbst, herbst@prefrontalcortex.de, 2018
+
+Shader "Hidden/DecodeNormalMap"
 {
 	Properties
 	{

@@ -1041,7 +1041,7 @@ public class SceneToGlTFWiz : MonoBehaviour
 		material.values.Add(doubleSided);
 	}
 
-    public Material unpackNormalMat;
+    private Material decodeNormal;
 
 	private bool getPixelsFromTexture(ref Texture2D texture, out Color[] pixels)
 	{
@@ -1080,11 +1080,11 @@ public class SceneToGlTFWiz : MonoBehaviour
 
         if (type == TextureImporterType.NormalMap)
         {
-            if (unpackNormalMat == null || unpackNormalMat.shader.name != "Unlit/GetNormalMap")
-                unpackNormalMat = new Material(Shader.Find("Unlit/GetNormalMap"));
+            if (decodeNormal == null || decodeNormal.shader.name != "Hidden/DecodeNormalMap")
+                decodeNormal = new Material(Shader.Find("Hidden/DecodeNormalMap"));
 
             var dst = RenderTexture.GetTemporary(texture.width, texture.height, 24, RenderTextureFormat.ARGB32);
-            Graphics.Blit(texture, dst, unpackNormalMat);
+            Graphics.Blit(texture, dst, decodeNormal);
             RenderTexture.active = dst;
             var normalTex = new Texture2D(texture.width, texture.height, TextureFormat.ARGB32, false, true);
             normalTex.ReadPixels(new Rect(0, 0, texture.width, texture.height), 0, 0);
