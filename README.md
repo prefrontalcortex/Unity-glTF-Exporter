@@ -141,7 +141,6 @@ They will be kept up-to-date while the glTF 2.0 specification is being developpe
 
 ### Materials
 * emission color values are clamped in [0.0, 1.0] as glTF doesn"t allow HDR values for this channel yet. (see this [github issue](https://github.com/KhronosGroup/glTF/issues/1083))
-* bump maps or normal map generated from grayscale are ignored
 * tiling/offset parameters not exported (see current [github pull request](https://github.com/KhronosGroup/glTF/pull/1015))
 * secondary maps and all other following material settings
 
